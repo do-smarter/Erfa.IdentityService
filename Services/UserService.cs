@@ -1,7 +1,13 @@
-﻿using Azure.Core;
-using Erfa.IdentityService.Models;
-using Erfa.IdentityService.ViewModels;
+﻿using Erfa.IdentityService.Models;
+using Erfa.IdentityService.ViewModels.Common;
+using Erfa.IdentityService.ViewModels.Error;
+using Erfa.IdentityService.ViewModels.Login;
+using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Erfa.IdentityService.Services
 {
@@ -9,37 +15,135 @@ namespace Erfa.IdentityService.Services
     {
         private UserManager<Employee> _userManager;
         private RoleManager<IdentityRole> _roleManager;
+        private IConfiguration _configuration;
 
-        public UserService(UserManager<Employee> userManager, RoleManager<IdentityRole> roleManager)
+        public UserService(UserManager<Employee> userManager,
+                           RoleManager<IdentityRole> roleManager,
+                           IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _configuration = configuration;
         }
 
-        public async Task<UserManagerResponse> RegisterNewEmployeeAsync(RegisterEmployeeRequestModel model)
+        public async Task<LoginResult> LoginAsync(LoginRequestModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+            {
+                var res = new ErrorResponse
+                {
+                    Message = "Invalid username name or password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Invalid credentials" }
+                };
+                return new LoginFailResult(res);
+            }
+
+            var result = await _userManager.CheckPasswordAsync(user, model.Password);
+
+            if (!result)
+            {
+                var res = new ErrorResponse
+                {
+                    Message = "Invalid username name or password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Invalid credentials" }
+                };
+                return new LoginFailResult(res);
+            }
+
+
+            if (!user.IsActive)
+            {
+                var res = new ErrorResponse
+                {
+                    Message = "Yor profile is not active",
+                    IsSuccess = false,
+                    StatusCode = 403,
+                    Errors = new[] { "Inactive profile" }
+                };
+                return new LoginFailResult(res);
+
+            }
+
+            if (user.IsPasswordChangeRequired)
+            {
+                var res = new ErrorResponse
+                {
+                    Message = "You must register your password",
+                    IsSuccess = false,
+                    StatusCode = 403,
+                    Errors = new[] { "New password required" }
+                };
+                return new LoginFailResult(res);
+
+            }
+
+            var claims = new[]
+        {
+                new Claim("UserName", user.UserName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+
+            };
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var role in userRoles)
+            {
+                claims.Append(new Claim(ClaimTypes.Role, role));
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AuthSettings:Key"]));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["AuthSettings:Issuer"],
+                audience: _configuration["AuthSettings:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(20),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            string tokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            var response = new LoginResponseModel
+            {
+                Message = "Welcome",
+                IsSuccess = true,
+                ExpireDate = token.ValidTo,
+                Roles = userRoles.ToArray(),
+                UserName = user.UserName,
+                StatusCode = 200,
+            };
+            return new LoginSuccessResult(token, response);
+        }
+
+
+        public async Task<IdentityResponse> RegisterNewEmployeeAsync(RegisterEmployeeRequestModel model)
         {
 
             if (model == null)
                 throw new NullReferenceException("Reigster Model is null");
 
             if (model.Password != model.ConfirmPassword)
-                return new UserManagerResponse
+                return new ErrorResponse
                 {
                     Message = "Confirm password doesn't match the password",
-                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Password divergence" },
+
                 };
-
-
 
             foreach (var role in model.Roles)
             {
                 if (!await _roleManager.RoleExistsAsync(role))
                 {
-                    return new UserManagerResponse
+                    return new ErrorResponse
                     {
                         Message = "User not created",
                         IsSuccess = false,
                         Errors = new[] { "Role not allowed" },
+                        StatusCode = 400
                     };
                 }
             }
@@ -52,8 +156,6 @@ namespace Erfa.IdentityService.Services
                 IsPasswordChangeRequired = true,
             };
 
-
-
             var result = await _userManager.CreateAsync(identityUser, model.Password);
 
             if (result.Succeeded)
@@ -63,17 +165,20 @@ namespace Erfa.IdentityService.Services
                     await _userManager.AddToRoleAsync(identityUser, role);
 
                 }
-                return new UserManagerResponse
+                return new IdentityResponse
                 {
                     Message = "User created",
                     IsSuccess = true,
+                    StatusCode = 201
                 };
             }
-            return new UserManagerResponse
+
+            return new ErrorResponse
             {
                 Message = "User not created",
                 IsSuccess = false,
-                Errors = result.Errors.Select(e => e.Description).ToArray()
+                Errors = result.Errors.Select(e => e.Description).ToArray(),
+                StatusCode = 400
             };
         }
     }

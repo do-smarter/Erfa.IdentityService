@@ -1,7 +1,8 @@
 ﻿using Erfa.IdentityService.Services;
-using Erfa.IdentityService.ViewModels;
-using Microsoft.AspNetCore.Http;
+using Erfa.IdentityService.ViewModels.Login;
+using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Erfa.IdentityService.Controllers
 {
@@ -16,23 +17,48 @@ namespace Erfa.IdentityService.Controllers
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("RegisterEmployee")]
         public async Task<IActionResult> RegisterNewEmployeeAsync([FromBody] RegisterEmployeeRequestModel model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-            var result = await _userService.RegisterNewEmployeeAsync(model);
+                var result = await _userService.RegisterNewEmployeeAsync(model);
 
                 if (result.IsSuccess)
                 {
                     return Ok(result);
                 }
-                return BadRequest(result);
+                return StatusCode(result.StatusCode, result);
 
             }
             return BadRequest("Some properties are not valid");
+        }
 
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _userService.LoginAsync(model);
 
+                if (result.Response.IsSuccess)
+                {
+                    Response.Cookies
+                .Append("X-Access-Token", new JwtSecurityTokenHandler()
+                .WriteToken(((LoginSuccessResult)result).Token),
+                new CookieOptions()
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true
+                });
+                    return Ok(result.Response);
+                }
+
+                return StatusCode(result.Response.StatusCode, result.Response);
+            }
+
+            return BadRequest("Some properties are not valid");
         }
     }
 }

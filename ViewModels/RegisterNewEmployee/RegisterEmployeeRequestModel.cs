@@ -1,17 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Erfa.IdentityService.ViewModels
+namespace Erfa.IdentityService.ViewModels.RegisterNewEmployee
 {
     public class RegisterEmployeeRequestModel
     {
         [Required]
-        [StringLength(10, MinimumLength = 2)]
+        [StringLength(20, MinimumLength = 2)]
         public string FirstName { get; set; }
         [Required]
-        [StringLength(10, MinimumLength = 2)]
+        [StringLength(20, MinimumLength = 2)]
         public string LastName { get; set; }
         [Required]
-        [StringLength(10, MinimumLength = 2)]
+        [StringLength(6, MinimumLength = 2)]
         public string UserName { get; set; }
 
         [Required]
@@ -23,7 +23,7 @@ namespace Erfa.IdentityService.ViewModels
         public string ConfirmPassword { get; set; }
 
         [Required]
-        [MinLengthAttribute(1)]
+        [MinLength(1)]
         public string[] Roles { get; set; }
     }
 }
