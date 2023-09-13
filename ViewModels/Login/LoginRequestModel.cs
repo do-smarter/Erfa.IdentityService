@@ -1,13 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Erfa.IdentityService.ViewModels
+namespace Erfa.IdentityService.ViewModels.Login
 {
-    public class LoginViewModel
+    public class LoginRequestModel
     {
         [Required]
-        [StringLength(50)]
-        [EmailAddress]
-        public string Email { get; set; }
+        [StringLength(6, MinimumLength = 2)]
+        public string UserName { get; set; }
 
         [Required]
         [StringLength(50, MinimumLength = 5)]

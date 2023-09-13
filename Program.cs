@@ -1,3 +1,4 @@
+using Erfa.IdentityService.Middlewares;
 using Erfa.IdentityService.Models;
 using Erfa.IdentityService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -76,7 +77,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCustomExceptionHandler();
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();

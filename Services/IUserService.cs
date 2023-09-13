@@ -1,9 +1,12 @@
-﻿using Erfa.IdentityService.ViewModels;
+﻿using Erfa.IdentityService.ViewModels.Common;
+using Erfa.IdentityService.ViewModels.Login;
+using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
 
 namespace Erfa.IdentityService.Services
 {
     public interface IUserService
     {
-        Task<UserManagerResponse> RegisterNewEmployeeAsync(RegisterEmployeeRequestModel model);
+        Task<LoginResult> LoginAsync(LoginRequestModel model);
+        Task<IdentityResponse> RegisterNewEmployeeAsync(RegisterEmployeeRequestModel model);
     }
 }
