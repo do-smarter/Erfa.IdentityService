@@ -3,6 +3,7 @@ using Erfa.IdentityService.ViewModels.Common;
 using Erfa.IdentityService.ViewModels.Error;
 using Erfa.IdentityService.ViewModels.Login;
 using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
+using Erfa.IdentityService.ViewModels.ResetPassword;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -66,7 +67,6 @@ namespace Erfa.IdentityService.Services
                     Errors = new[] { "Inactive profile" }
                 };
                 return new LoginFailResult(res);
-
             }
 
             if (user.IsPasswordChangeRequired)
@@ -104,13 +104,12 @@ namespace Erfa.IdentityService.Services
                 expires: DateTime.Now.AddMinutes(20),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
-            string tokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
 
             var response = new LoginResponseModel
             {
                 Message = "Welcome",
                 IsSuccess = true,
-                ExpireDate = token.ValidTo,
+                ExpireDate = token.ValidTo.ToLocalTime(),
                 Roles = userRoles.ToArray(),
                 UserName = user.UserName,
                 StatusCode = 200,
@@ -179,6 +178,82 @@ namespace Erfa.IdentityService.Services
                 IsSuccess = false,
                 Errors = result.Errors.Select(e => e.Description).ToArray(),
                 StatusCode = 400
+            };
+        }
+
+        public async Task<IdentityResponse> ResetPassword(ResetPasswordRequestModel model)
+        {
+            if (model.NewPassword != model.ConfirmPassword)
+                return new ErrorResponse
+                {
+                    Message = "Confirm password doesn't match the password",
+                    StatusCode = 400,
+                    Errors = new[] { "Password divergence" },
+
+                };
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+            {
+                return new ErrorResponse
+                {
+                    Message = "Invalid username name or password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Invalid credentials" }
+                };
+            }
+
+            var result = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+
+            if (!result)
+            {
+                return new ErrorResponse
+                {
+                    Message = "Invalid username name or password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Invalid credentials" }
+                };
+            }
+
+            if (!user.IsActive)
+            {
+                return new ErrorResponse
+                {
+                    Message = "Yor profile is not active",
+                    IsSuccess = false,
+                    StatusCode = 403,
+                    Errors = new[] { "Inactive profile" }
+                };
+            }
+
+            var updated = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.ConfirmPassword);
+
+            if (updated.Succeeded)
+            {
+                user.IsPasswordChangeRequired = false;
+                await _userManager.UpdateAsync(user);
+                return new IdentityResponse
+                {
+
+                    IsSuccess = true,
+                    StatusCode = 200,
+                    Message = "Password changed"
+                };
+            }
+
+            var errors = new List<string>();
+            foreach (var ie in updated.Errors)
+            {
+                errors.Add(ie.Description);
+            }
+
+            return new ErrorResponse
+            {
+                Message = "Change password failed.",
+                IsSuccess = false,
+                StatusCode = 400,
+                Errors = errors.ToArray()
             };
         }
     }
