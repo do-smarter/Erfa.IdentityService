@@ -1,6 +1,7 @@
 ﻿using Erfa.IdentityService.Services;
 using Erfa.IdentityService.ViewModels.Login;
 using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
+using Erfa.IdentityService.ViewModels.ResetPassword;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -15,23 +16,6 @@ namespace Erfa.IdentityService.Controllers
         public AuthController(IUserService userService)
         {
             _userService = userService;
-        }
-
-        [HttpPost("RegisterEmployee")]
-        public async Task<IActionResult> RegisterNewEmployeeAsync([FromBody] RegisterEmployeeRequestModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var result = await _userService.RegisterNewEmployeeAsync(model);
-
-                if (result.IsSuccess)
-                {
-                    return Ok(result);
-                }
-                return StatusCode(result.StatusCode, result);
-
-            }
-            return BadRequest("Some properties are not valid");
         }
 
         [HttpPost("Login")]
@@ -58,6 +42,42 @@ namespace Erfa.IdentityService.Controllers
                 return StatusCode(result.Response.StatusCode, result.Response);
             }
 
+            return BadRequest("Some properties are not valid");
+        }
+
+        [HttpPost("RegisterEmployee")]
+        public async Task<IActionResult> RegisterNewEmployeeAsync([FromBody] RegisterEmployeeRequestModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _userService.RegisterNewEmployeeAsync(model);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.StatusCode, result);
+
+            }
+            return BadRequest("Some properties are not valid");
+        }
+
+
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _userService.ResetPassword(model);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.StatusCode, result);
+
+            }
             return BadRequest("Some properties are not valid");
         }
     }
