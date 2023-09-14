@@ -155,7 +155,8 @@ namespace Erfa.IdentityService.Services
                 IsPasswordChangeRequired = true,
             };
 
-            var result = await _userManager.CreateAsync(identityUser, model.Password);
+            var result = await _userManager
+                .CreateAsync(identityUser, model.Password);
 
             if (result.Succeeded)
             {
@@ -203,7 +204,8 @@ namespace Erfa.IdentityService.Services
                 };
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+            var result = await _userManager
+                .CheckPasswordAsync(user, model.CurrentPassword);
 
             if (!result)
             {
@@ -213,6 +215,17 @@ namespace Erfa.IdentityService.Services
                     IsSuccess = false,
                     StatusCode = 400,
                     Errors = new[] { "Invalid credentials" }
+                };
+            }
+
+            if (model.CurrentPassword.Equals(model.ConfirmPassword))
+            {
+                return new ErrorResponse
+                {
+                    Message = "Choose different password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Same password provided" }
                 };
             }
 
