@@ -13,23 +13,18 @@ var configuration = builder.Configuration;
 builder.Services.AddDbContext<ApplicationDbContext>(
 options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-var origins = new[] { "http://localhost:3000", "http://localhost:3002", "http://localhost:3001" };
+var policyName = !configuration["Cors:policyName"].IsNullOrEmpty()? configuration["Cors:policyName"] : "policy";
+
+var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
+    options.AddPolicy(name: policyName,
                       policy =>
                       {
                           policy.WithOrigins(origins)
+                          .AllowAnyMethod()
                           .AllowAnyHeader();
-
                       });
-    Console.WriteLine("POLICY");
-    foreach (var item in options.GetPolicy(MyAllowSpecificOrigins).Methods)
-    {
-        Console.WriteLine(item);
-    }
-
 });
 builder.Services.AddIdentity<Employee, IdentityRole>(options =>
 {
@@ -78,7 +73,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCustomExceptionHandler();
-app.UseCors(MyAllowSpecificOrigins);
+app.UseCors(policyName);
 
 app.UseAuthorization();
 
