@@ -13,7 +13,7 @@ var configuration = builder.Configuration;
 builder.Services.AddDbContext<ApplicationDbContext>(
 options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-var policyName = !configuration["Cors:policyName"].IsNullOrEmpty()? configuration["Cors:policyName"] : "policy";
+var policyName = !configuration["Cors:policyName"].IsNullOrEmpty() ? configuration["Cors:policyName"] : "policy";
 
 var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
@@ -23,7 +23,8 @@ builder.Services.AddCors(options =>
                       {
                           policy.WithOrigins(origins)
                           .AllowAnyMethod()
-                          .AllowAnyHeader();
+                          .AllowAnyHeader()
+                          .AllowCredentials();
                       });
 });
 builder.Services.AddIdentity<Employee, IdentityRole>(options =>
