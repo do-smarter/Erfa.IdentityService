@@ -85,7 +85,7 @@ namespace Erfa.IdentityService.Services
             var claims = new List<Claim>
         {
                 new Claim("UserName", user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("UserId", user.Id),
 
             };
             
@@ -93,7 +93,7 @@ namespace Erfa.IdentityService.Services
             foreach (var role in userRoles)
             {
                 var r = role;
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("Role", role));
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AuthSettings:Key"]));
