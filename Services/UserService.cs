@@ -82,17 +82,18 @@ namespace Erfa.IdentityService.Services
 
             }
 
-            var claims = new[]
+            var claims = new List<Claim>
         {
                 new Claim("UserName", user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("UserId", user.Id),
 
             };
-
+            
             var userRoles = await _userManager.GetRolesAsync(user);
             foreach (var role in userRoles)
             {
-                claims.Append(new Claim(ClaimTypes.Role, role));
+                var r = role;
+                claims.Add(new Claim("Role", role));
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AuthSettings:Key"]));
@@ -100,7 +101,7 @@ namespace Erfa.IdentityService.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["AuthSettings:Issuer"],
                 audience: _configuration["AuthSettings:Audience"],
-                claims: claims,
+                claims: claims.ToArray(),
                 expires: DateTime.Now.AddMinutes(20),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
@@ -155,7 +156,8 @@ namespace Erfa.IdentityService.Services
                 IsPasswordChangeRequired = true,
             };
 
-            var result = await _userManager.CreateAsync(identityUser, model.Password);
+            var result = await _userManager
+                .CreateAsync(identityUser, model.Password);
 
             if (result.Succeeded)
             {
@@ -203,7 +205,8 @@ namespace Erfa.IdentityService.Services
                 };
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+            var result = await _userManager
+                .CheckPasswordAsync(user, model.CurrentPassword);
 
             if (!result)
             {
@@ -213,6 +216,17 @@ namespace Erfa.IdentityService.Services
                     IsSuccess = false,
                     StatusCode = 400,
                     Errors = new[] { "Invalid credentials" }
+                };
+            }
+
+            if (model.CurrentPassword.Equals(model.ConfirmPassword))
+            {
+                return new ErrorResponse
+                {
+                    Message = "Choose different password",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Errors = new[] { "Same password provided" }
                 };
             }
 

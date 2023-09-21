@@ -24,25 +24,31 @@ namespace Erfa.IdentityService.Controllers
             if (ModelState.IsValid)
             {
                 var result = await _userService.LoginAsync(model);
-
                 if (result.Response.IsSuccess)
                 {
                     Response.Cookies
-                .Append("X-Access-Token", new JwtSecurityTokenHandler()
-                .WriteToken(((LoginSuccessResult)result).Token),
-                new CookieOptions()
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.Strict,
-                    Secure = true
-                });
+                        .Append("X-Access-Token", new JwtSecurityTokenHandler()
+                        .WriteToken(((LoginSuccessResult)result).Token),
+                            new CookieOptions()
+                            {
+                                HttpOnly = true,
+                                SameSite = SameSiteMode.Strict,
+                                Secure = true,
+                                Expires = DateTimeOffset.UtcNow.AddMinutes(20).AddHours(2),
+                                Path = "/"
+                            });
                     return Ok(result.Response);
                 }
-
                 return StatusCode(result.Response.StatusCode, result.Response);
             }
-
             return BadRequest("Some properties are not valid");
+        }
+
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            Response.Cookies.Delete("X-Access-Token");
+            return StatusCode(204);
         }
 
         [HttpPost("RegisterEmployee")]
@@ -51,32 +57,26 @@ namespace Erfa.IdentityService.Controllers
             if (ModelState.IsValid)
             {
                 var result = await _userService.RegisterNewEmployeeAsync(model);
-
                 if (result.IsSuccess)
                 {
                     return Ok(result);
                 }
                 return StatusCode(result.StatusCode, result);
-
             }
             return BadRequest("Some properties are not valid");
         }
 
-
-
-        [HttpPost("ResetPassword")]
+        [HttpPut("ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel model)
         {
             if (ModelState.IsValid)
             {
                 var result = await _userService.ResetPassword(model);
-
                 if (result.IsSuccess)
                 {
                     return Ok(result);
                 }
                 return StatusCode(result.StatusCode, result);
-
             }
             return BadRequest("Some properties are not valid");
         }
