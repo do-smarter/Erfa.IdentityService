@@ -4,11 +4,9 @@ using Erfa.IdentityService.ViewModels.Error;
 using Erfa.IdentityService.ViewModels.Login;
 using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
 using Erfa.IdentityService.ViewModels.ResetPassword;
+using Erfa.IdentityService.ViewModels.ValidateUserToken;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
 
 namespace Erfa.IdentityService.Services
 {
@@ -16,17 +14,16 @@ namespace Erfa.IdentityService.Services
     {
         private UserManager<Employee> _userManager;
         private RoleManager<IdentityRole> _roleManager;
-        private IConfiguration _configuration;
+        private IJwService _jwtService;
 
         public UserService(UserManager<Employee> userManager,
                            RoleManager<IdentityRole> roleManager,
-                           IConfiguration configuration)
+                           IJwService jwtService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _configuration = configuration;
+            _jwtService = jwtService;
         }
-
         public async Task<LoginResult> LoginAsync(LoginRequestModel model)
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
@@ -56,7 +53,6 @@ namespace Erfa.IdentityService.Services
                 return new LoginFailResult(res);
             }
 
-
             if (!user.IsActive)
             {
                 var res = new ErrorResponse
@@ -79,33 +75,10 @@ namespace Erfa.IdentityService.Services
                     Errors = new[] { "New password required" }
                 };
                 return new LoginFailResult(res);
-
             }
 
-            var claims = new List<Claim>
-        {
-                new Claim("UserName", user.UserName),
-                new Claim("UserId", user.Id),
-
-            };
-            
             var userRoles = await _userManager.GetRolesAsync(user);
-            foreach (var role in userRoles)
-            {
-                var r = role;
-                claims.Add(new Claim("Role", role));
-            }
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AuthSettings:Key"]));
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["AuthSettings:Issuer"],
-                audience: _configuration["AuthSettings:Audience"],
-                claims: claims.ToArray(),
-                expires: DateTime.Now.AddMinutes(20),
-                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-
-
+            var token = _jwtService.NewToken(user, userRoles.ToList());
             var response = new LoginResponseModel
             {
                 Message = "Welcome",
@@ -118,10 +91,8 @@ namespace Erfa.IdentityService.Services
             return new LoginSuccessResult(token, response);
         }
 
-
         public async Task<IdentityResponse> RegisterNewEmployeeAsync(RegisterEmployeeRequestModel model)
         {
-
             if (model == null)
                 throw new NullReferenceException("Reigster Model is null");
 
@@ -131,7 +102,6 @@ namespace Erfa.IdentityService.Services
                     Message = "Confirm password doesn't match the password",
                     StatusCode = 400,
                     Errors = new[] { "Password divergence" },
-
                 };
 
             foreach (var role in model.Roles)
@@ -164,7 +134,6 @@ namespace Erfa.IdentityService.Services
                 foreach (var role in model.Roles)
                 {
                     await _userManager.AddToRoleAsync(identityUser, role);
-
                 }
                 return new IdentityResponse
                 {
@@ -182,7 +151,6 @@ namespace Erfa.IdentityService.Services
                 StatusCode = 400
             };
         }
-
         public async Task<IdentityResponse> ResetPassword(ResetPasswordRequestModel model)
         {
             if (model.NewPassword != model.ConfirmPassword)
@@ -191,8 +159,8 @@ namespace Erfa.IdentityService.Services
                     Message = "Confirm password doesn't match the password",
                     StatusCode = 400,
                     Errors = new[] { "Password divergence" },
-
                 };
+
             var user = await _userManager.FindByNameAsync(model.UserName);
             if (user == null)
             {
@@ -205,8 +173,7 @@ namespace Erfa.IdentityService.Services
                 };
             }
 
-            var result = await _userManager
-                .CheckPasswordAsync(user, model.CurrentPassword);
+            var result = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
 
             if (!result)
             {
@@ -268,6 +235,26 @@ namespace Erfa.IdentityService.Services
                 IsSuccess = false,
                 StatusCode = 400,
                 Errors = errors.ToArray()
+            };
+        }
+
+        public async Task<IdentityResponse> ValidateUserTokenAsync(ValidateUserTokenPayloadRequestModel model)
+        {
+            if (!_jwtService.IsValidPayload(model))
+            {
+                return new ErrorResponse
+                {
+                    Message = "Invalid token",
+                    IsSuccess = false,
+                    StatusCode = 401,
+                    Errors = new[] { "Invalid token" }
+                };
+            }
+            return new IdentityResponse()
+            {
+                IsSuccess = true,
+                StatusCode = 200,
+                Message = "Verified"
             };
         }
     }

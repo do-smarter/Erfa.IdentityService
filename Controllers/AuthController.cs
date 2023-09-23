@@ -2,6 +2,7 @@
 using Erfa.IdentityService.ViewModels.Login;
 using Erfa.IdentityService.ViewModels.RegisterNewEmployee;
 using Erfa.IdentityService.ViewModels.ResetPassword;
+using Erfa.IdentityService.ViewModels.ValidateUserToken;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -16,6 +17,28 @@ namespace Erfa.IdentityService.Controllers
         public AuthController(IUserService userService)
         {
             _userService = userService;
+        }
+
+        [HttpPost("ValidateUserToken")]
+        public async Task<IActionResult> ValidateUserToken([FromBody] ValidateUserTokenRequestModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                ValidateUserTokenPayloadRequestModel withToken = new ValidateUserTokenPayloadRequestModel()
+                {
+                    Roles = model.Roles,
+                    UserName = model.UserName,
+                    SecurityToken = Request.Cookies["X-Access-Token"].ToString()
+                };
+
+                var res = await _userService.ValidateUserTokenAsync(withToken);
+                if (res.IsSuccess)
+                {
+                    return Ok(res);
+                }
+                return StatusCode(res.StatusCode, res);
+            }
+            return BadRequest("Some properties are not valid");
         }
 
         [HttpPost("Login")]

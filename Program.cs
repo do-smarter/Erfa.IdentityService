@@ -55,6 +55,7 @@ builder.Services.AddAuthentication(auth =>
 
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IJwService, JwtService>();
 
 // Add services to the container.
 
