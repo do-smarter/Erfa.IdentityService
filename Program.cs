@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +42,7 @@ builder.Services.AddAuthentication(auth =>
     auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -81,5 +82,21 @@ app.UseCors(policyName);
 app.UseAuthorization();
 
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+
+var context = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+var userManager = scope.ServiceProvider.GetService<UserManager<Employee>>();
+var userName = configuration.GetSection("DevUser:UserName").Get<string>();
+var password = configuration.GetSection("DevUser:Password").Get<string>();
+var passwordHash = userManager.PasswordHasher;
+await context.Database.MigrateAsync();
+await userManager.CreateAsync(new Employee()
+{
+    UserName = userName,
+    IsActive = true,
+    IsPasswordChangeRequired = false
+}, password);
 
 app.Run();
