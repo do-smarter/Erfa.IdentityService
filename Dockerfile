@@ -19,4 +19,4 @@ RUN dotnet publish "Erfa.IdentityService.csproj" -c Release -o /app/publish /p:U
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Erfa.IdentityService.dll"]
+ENTRYPOINT ["dotnet", "Erfa.IdentityService.dll", "--environment=Staging"]
