@@ -4,6 +4,7 @@ using Erfa.IdentityService.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Erfa.IdentityService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231121082616_Change_HRAdmin_To_Seller")]
+    partial class Change_HRAdmin_To_Seller
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,31 +133,24 @@ namespace Erfa.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "a4d3ac75-d3e9-45a9-a1cf-b05532d53de1",
+                            Id = "6dfe8574-1135-462a-a2ac-90bd82ee55e8",
                             ConcurrencyStamp = "1",
                             Name = "ProdAdmin",
                             NormalizedName = "PRODADMIN"
                         },
                         new
                         {
-                            Id = "5899f1f4-525d-44eb-8e26-ffa1ce54f689",
+                            Id = "3d7f2c1f-d766-4a10-9fbf-480a84a4df94",
                             ConcurrencyStamp = "2",
                             Name = "ProdWorker",
                             NormalizedName = "PRODWORKER"
                         },
                         new
                         {
-                            Id = "6ca4629b-214e-4c58-ba0f-83bf5d5e04dd",
+                            Id = "9a14101b-7335-42cb-a848-2fff93d0a85d",
                             ConcurrencyStamp = "2",
                             Name = "Seller",
                             NormalizedName = "SELLER"
-                        },
-                        new
-                        {
-                            Id = "1fd6cccd-736d-4997-aa19-a1b080f0b0af",
-                            ConcurrencyStamp = "2",
-                            Name = "InfoUser",
-                            NormalizedName = "InfoUser"
                         });
                 });
 
