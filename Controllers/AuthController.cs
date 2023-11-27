@@ -55,7 +55,7 @@ namespace Erfa.IdentityService.Controllers
                             new CookieOptions()
                             {
                                 HttpOnly = true,
-                                SameSite = SameSiteMode.Strict,
+                                SameSite = SameSiteMode.None,
                                 Secure = true,
                                 Expires = DateTimeOffset.UtcNow.AddMinutes(20).AddHours(2),
                                 Path = "/"
