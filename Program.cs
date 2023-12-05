@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+options => options.UseNpgsql(configuration.GetConnectionString("PostgreSQLConnString")));
 
 var policyName = !configuration["Cors:policyName"].IsNullOrEmpty() ? configuration["Cors:policyName"] : "policy";
 

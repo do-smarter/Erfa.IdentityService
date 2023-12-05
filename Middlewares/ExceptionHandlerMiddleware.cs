@@ -34,7 +34,6 @@ namespace Erfa.IdentityService.Middlewares
             context.Response.ContentType = "application/json";
 
             var result = string.Empty;
-            Console.WriteLine(exception.ToString());
             _logger.LogError(exception, exception.Message);
 
             switch (exception)

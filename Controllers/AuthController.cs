@@ -55,7 +55,7 @@ namespace Erfa.IdentityService.Controllers
                             new CookieOptions()
                             {
                                 HttpOnly = true,
-                                SameSite = SameSiteMode.Strict,
+                                SameSite = SameSiteMode.None,
                                 Secure = true,
                                 Expires = DateTimeOffset.UtcNow.AddMinutes(20).AddHours(2),
                                 Path = "/"
@@ -70,7 +70,16 @@ namespace Erfa.IdentityService.Controllers
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
         {
-            Response.Cookies.Delete("X-Access-Token");
+            Response.Cookies.Append("X-Access-Token", new JwtSecurityTokenHandler()
+                        .WriteToken(new JwtSecurityToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2YWxpZCI6ImZhbHNlIn0.j8yuVGFZKf9nHYbKX8x4kFxxCQZ4OJheWxHBrzIyvb0")),
+                            new CookieOptions()
+                            {
+                                HttpOnly = true,
+                                SameSite = SameSiteMode.None,
+                                Secure = true,
+                                Expires = DateTimeOffset.UtcNow.AddMinutes(20),
+                                Path = "/"
+                            });
             return StatusCode(204);
         }
 

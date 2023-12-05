@@ -21,7 +21,7 @@ namespace Erfa.IdentityService.Models
                 new IdentityRole() { Name = "ProdAdmin", ConcurrencyStamp = "1", NormalizedName = "PRODADMIN" },
                 new IdentityRole() { Name = "ProdWorker", ConcurrencyStamp = "2", NormalizedName = "PRODWORKER" },
                 new IdentityRole() { Name = "Seller", ConcurrencyStamp = "2", NormalizedName = "SELLER" },
-                new IdentityRole() { Name = "InfoUser", ConcurrencyStamp = "2", NormalizedName = "InfoUser" }
+                new IdentityRole() { Name = "InfoUser", ConcurrencyStamp = "2", NormalizedName = "INFOUSER" }
                 );
 
         }
