@@ -128,31 +128,31 @@ namespace Erfa.IdentityService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "c5558538-13e9-414e-b295-b3049512ec45",
+                            Id = "6161f822-dc97-4f35-925f-b3a29d21ef8c",
                             ConcurrencyStamp = "1",
                             Name = "ProdAdmin",
                             NormalizedName = "PRODADMIN"
                         },
                         new
                         {
-                            Id = "30b08197-1e5f-4e57-b691-caa2c1e45991",
+                            Id = "1cbdbbe3-e681-47c3-9d9f-6665d70da79c",
                             ConcurrencyStamp = "2",
                             Name = "ProdWorker",
                             NormalizedName = "PRODWORKER"
                         },
                         new
                         {
-                            Id = "907b4bd4-eacf-4f95-b225-3ef2c673ee9f",
+                            Id = "9c8d732f-4e96-48ca-ac44-d4198fe3e323",
                             ConcurrencyStamp = "2",
                             Name = "Seller",
                             NormalizedName = "SELLER"
                         },
                         new
                         {
-                            Id = "470b756e-9fcd-402d-9851-cf918594b873",
+                            Id = "c09bbd70-3e88-42b0-a50e-f8cac0085380",
                             ConcurrencyStamp = "2",
                             Name = "InfoUser",
-                            NormalizedName = "InfoUser"
+                            NormalizedName = "INFOUSER"
                         });
                 });
 

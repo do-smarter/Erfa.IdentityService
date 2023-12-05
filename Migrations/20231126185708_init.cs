@@ -169,7 +169,7 @@ namespace Erfa.IdentityService.Migrations
                 values: new object[,]
                 {
                     { "30b08197-1e5f-4e57-b691-caa2c1e45991", "2", "ProdWorker", "PRODWORKER" },
-                    { "470b756e-9fcd-402d-9851-cf918594b873", "2", "InfoUser", "InfoUser" },
+                    { "470b756e-9fcd-402d-9851-cf918594b873", "2", "InfoUser", "INFOUSER" },
                     { "907b4bd4-eacf-4f95-b225-3ef2c673ee9f", "2", "Seller", "SELLER" },
                     { "c5558538-13e9-414e-b295-b3049512ec45", "1", "ProdAdmin", "PRODADMIN" }
                 });
